@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SQL Validator</title>
+    <link rel="stylesheet" type="text/css" href="style.css">
+</head>
+
+<body>
+    <div class="darkbutton">
+        <label class="switch">
+            <input type="checkbox" id="mode-toggle">
+            <span class="slider round"></span>
+        </label>
+        <span>Dark Mode</span>
+    </div>
+    <h1>SQL DML Validator</h1>
+    <div class="box">
+        <input class="in" type="text">
+        <input class="out" type="text">
+    </div>
+    <div class="box2">
+        <textarea class="error" cols="120" rows="10"></textarea>
+    </div>
+    <button>Validate</button>
+
+
+    <script>
+        const toggle = document.getElementById('mode-toggle');
+        const body = document.body;
+
+        // Wenn der Benutzer den Switch aktiviert, Dark Mode umschalten
+        toggle.addEventListener('change', function () {
+            body.classList.toggle('dark-mode');
+        });
+    </script>
+</body>
+
+</html>
