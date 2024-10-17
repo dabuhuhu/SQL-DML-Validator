@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SQL Code Checker</title>
+</head>
+<body>
+    <h1>Paste your SQL code and run all checks</h1>
+    
+    <!-- Form for inputting SQL code -->
+    <form method="POST" action="{{ url_for('run_all_functions') }}">
+        <label for="sqlCode">SQL Code:</label><br>
+        <textarea id="sqlCode" name="sqlCode" rows="10" cols="50" placeholder="Paste your SQL code here..."></textarea><br><br>
+        <button type="submit">Run All Functions</button>
+    </form>
+    
+    <!-- Display results from hasError() -->
+    {% if hasError is not none %}
+        <h2>Has Error:</h2>
+        <p>{{ hasError }}</p>  <!-- Displays True or False -->
+    {% endif %}
+    
+    <!-- Display results from getErrorDescription() -->
+    {% if errorDescription is not none %}
+        <h2>Error Description:</h2>
+        <p>{{ errorDescription }}</p>
+    {% endif %}
+    
+    <!-- Display results from getCorrectedCode() -->
+    {% if correctedCode is not none %}
+        <h2>Corrected Code:</h2>
+        <pre>{{ correctedCode }}</pre>  <!-- Displays the corrected SQL code -->
+    {% endif %}
+</body>
+</html>
