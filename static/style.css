@@ -16,7 +16,6 @@ body {
     transition: background-color 0.3s, color 0.3s;
 }
 
-/* Box and Textarea styling */
 .box {
     display: flex;
     justify-content: center;
@@ -46,6 +45,20 @@ textarea.error {
     cursor: not-allowed;
 }
 
+.box2 {
+    display: flex;
+    justify-content: center;
+    margin-top: 20px;
+}
+
+textarea.error {
+    width: calc(2 * 400px + 20px);
+    /* Double the width of the input and output fields, including the gap */
+    height: 200px;
+    border: 2px solid #ccc;
+}
+
+/* Button Styling */
 button {
     margin-top: 20px;
     padding: 10px 20px;
