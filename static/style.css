@@ -33,6 +33,7 @@ textarea {
     font-size: 16px;
     color: var(--text-color);
     transition: background-color 0.3s, color 0.3s;
+    margin-right: 10px;
 }
 
 textarea:focus {
@@ -52,8 +53,7 @@ textarea.error {
 }
 
 textarea.error {
-    width: calc(2 * 400px + 20px);
-    /* Double the width of the input and output fields, including the gap */
+    width: calc(2 * 400px + 36px);
     height: 200px;
     border: 2px solid #ccc;
 }
@@ -80,7 +80,7 @@ button {
 .switch {
     position: relative;
     display: inline-block;
-    width: 60px;
+    width: 70px;
     height: 34px;
 }
 
@@ -106,13 +106,15 @@ button {
     position: absolute;
     content: '☀️';
     font-size: 18px;
-    left: 10px;
-    bottom: 7px;
+    left: 6px;
+    bottom: 6px;
     transition: 0.4s;
 }
 
 input:checked+.slider {
     background-color: #111;
+    /* background-color: #ccc; */
+    right: 26px;
 }
 
 input:checked+.slider:before {
