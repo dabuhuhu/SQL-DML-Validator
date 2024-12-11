@@ -1,6 +1,7 @@
 from flask import Flask, render_template, request, jsonify
 from functions import hasError, getErrorDescription, getCorrectedCode, reset_usage_tracking
 
+
 app = Flask(__name__)
 
 @app.route('/')
