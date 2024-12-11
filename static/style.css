@@ -129,3 +129,43 @@ input:checked+.slider:before {
     --input-background-color: #333333;
     --button-background-color: #6200EE;
 }
+
+.api-stats {
+    margin: 20px auto;
+    max-width: 200px;
+}
+
+.stats-box {
+    background-color: var(--input-background-color);
+    border: 2px solid #ccc;
+    border-radius: 8px;
+    padding: 15px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.stats-box h3 {
+    margin: 0 0 10px 0;
+    color: var(--text-color);
+    font-size: 16px;
+}
+
+.stats-box p {
+    margin: 5px 0;
+    color: var(--text-color);
+    font-size: 14px;
+}
+
+.reset-btn {
+    margin-top: 10px;
+    padding: 5px 10px;
+    font-size: 12px;
+    background-color: #dc3545;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.reset-btn:hover {
+    background-color: #c82333;
+}
