@@ -20,15 +20,24 @@
 
     <h1>SQL DML Validator</h1>
 
+    <div class="api-stats">
+        <div class="stats-box">
+            <h3>API Usage</h3>
+            <p>Tokens: <span id="total-tokens">0</span></p>
+            <p>Kosten: $<span id="total-cost">0.000000</span></p>
+            <button id="reset-stats" class="reset-btn">Reset Stats</button>
+        </div>
+    </div>
+
     <div class="box">
-        <form id="sql-form">
-            <textarea class="in" placeholder="Enter SQL code here..."></textarea>
-            <textarea class="out" readonly placeholder="Output will appear here..."></textarea>
+        <form id="sql-form" method="POST" action="{{ url_for('run_all_functions') }}">
+            <textarea class="in" name="sqlCode" placeholder="Enter SQL code here..."></textarea>
+            <textarea class="out" readonly placeholder="Output will appear here...">{{ correctedCode if correctedCode != None }}</textarea>
         </form>
     </div>
 
     <div class="box2">
-        <textarea class="error" readonly placeholder="Errors will appear here..."></textarea>
+        <textarea class="error" readonly placeholder="Errors will appear here...">{{ errorDescription if errorDescription != None }}</textarea>
     </div>
 
     <button id="validate-btn">Validate</button>
@@ -50,19 +59,84 @@
                 document.cookie = "theme=" + (body.classList.contains('dark-mode') ? 'dark' : 'light') + "; path=/";
             });
 
+            // API Usage aus Cookies laden
+            const savedTokens = getCookie('total_tokens') || '0';
+            const savedCost = getCookie('total_cost') || '0.000000';
+            document.getElementById('total-tokens').textContent = savedTokens;
+            document.getElementById('total-cost').textContent = savedCost;
+
+            // Reset Button Funktionalität
+            document.getElementById('reset-stats').addEventListener('click', function() {
+                fetch('/reset-stats', { method: 'POST' })
+                    .then(response => response.json())
+                    .then(data => {
+                        document.getElementById('total-tokens').textContent = '0';
+                        document.getElementById('total-cost').textContent = '0.000000';
+                        setCookie('total_tokens', '0', 30);
+                        setCookie('total_cost', '0.000000', 30);
+                        $.notify("Statistiken zurückgesetzt", { position: "bottom center", className: "success" });
+                    });
+            });
+
             // Validate button functionality
-            document.getElementById('validate-btn').addEventListener('click', function () {
+            document.getElementById('validate-btn').addEventListener('click', function (e) {
+                e.preventDefault();
+                const form = document.getElementById('sql-form');
                 const sqlInput = document.querySelector('.in').value.trim();
 
                 if (sqlInput) {
-                    $(".error").val("");
-                    $(".out").val("SQL is valid.");
-                    $.notify("SQL Code is valid!", { position: "bottom center", className: "success" });
+                    fetch('/run-all', {
+                        method: 'POST',
+                        body: new FormData(form)
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        // Update API Usage Stats first
+                        if (data.apiUsage) {
+                            const tokens = data.apiUsage.totalTokens;
+                            const cost = parseFloat(data.apiUsage.totalCost).toFixed(6);
+                            
+                            document.getElementById('total-tokens').textContent = tokens;
+                            document.getElementById('total-cost').textContent = cost;
+                            
+                            setCookie('total_tokens', tokens, 30);
+                            setCookie('total_cost', cost, 30);
+                        }
+
+                        // Then update the UI based on validation result
+                        if (data.hasError) {
+                            $(".error").val(data.errorDescription);
+                            $(".out").val(data.correctedCode);
+                            $.notify("SQL Code has errors.", { position: "bottom center", className: "error" });
+                        } else {
+                            $(".error").val("");
+                            $(".out").val("SQL is valid.");
+                            $.notify("SQL Code is valid!", { position: "bottom center", className: "success" });
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        $.notify("Ein Fehler ist aufgetreten", { position: "bottom center", className: "error" });
+                    });
                 } else {
-                    $(".error").val("Please enter valid SQL code.");
-                    $.notify("SQL Code has errors.", { position: "bottom center", className: "error" });
+                    $(".error").val("Please enter SQL code.");
+                    $.notify("Please enter SQL code.", { position: "bottom center", className: "error" });
                 }
             });
+
+            // Cookie Hilfsfunktionen
+            function setCookie(name, value, days) {
+                const d = new Date();
+                d.setTime(d.getTime() + (days * 24 * 60 * 60 * 1000));
+                const expires = "expires=" + d.toUTCString();
+                document.cookie = name + "=" + value + ";" + expires + ";path=/";
+            }
+
+            function getCookie(name) {
+                const value = `; ${document.cookie}`;
+                const parts = value.split(`; ${name}=`);
+                if (parts.length === 2) return parts.pop().split(';').shift();
+            }
         });
     </script>
 </body>
