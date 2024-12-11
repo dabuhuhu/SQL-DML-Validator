@@ -114,12 +114,12 @@ button {
 input:checked+.slider {
     background-color: #111;
     /* background-color: #ccc; */
-    right: 26px;
 }
 
 input:checked+.slider:before {
     content: '🌙';
     transform: translateX(26px);
+
 }
 
 /* Dark Mode */
