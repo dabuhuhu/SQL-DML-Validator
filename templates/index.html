@@ -1,16 +1,20 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="de">
 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SQL Validator</title>
-    <link rel="stylesheet" type="text/css" href="../static/style.css">
+    <link rel="stylesheet" href="../static/style.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
     <script src="https://notifyjs.jpillora.com/js/notify.js"></script>
 </head>
 
 <body>
+    <div id="loading">
+        <img src="https://i.gifer.com/YCZH.gif" alt="Loading...">
+    </div>
+
     <div class="darkbutton">
         <label class="switch">
             <input type="checkbox" id="mode-toggle">
@@ -29,25 +33,45 @@
         </div>
     </div>
 
+    <label for="sql-dialect">SQL Dialect:</label>
+    <select id="sql-dialect" name="dialect">
+        <option value="mysql">MySQL</option>
+        <option value="postgresql">PostgreSQL</option>
+        <option value="sqlite">SQLite</option>
+    </select>
+
     <div class="box">
-        <form id="sql-form" method="POST" action="{{ url_for('run_all_functions') }}">
-            <textarea class="in" name="sqlCode" placeholder="Enter SQL code here..."></textarea>
-            <textarea class="out" readonly placeholder="Output will appear here...">{{ correctedCode if correctedCode != None }}</textarea>
-        </form>
+        <div class="textarea-wrapper">
+            <h4>Input SQL Code</h4>
+            <textarea class="in" name="sqlCode"></textarea>
+        </div>
+        <div class="textarea-wrapper">
+            <h4>Corrected SQL Code</h4>
+            <div class="output-container">
+                <textarea class="out" readonly></textarea>
+                <button id="copy-output-btn" type="button">
+                    <img src="images/copy-icon.svg" alt="Copy" class="icon"> <!-- Icon hinzufügen -->
+                </button>
+            </div>
+        </div>
+
     </div>
 
     <div class="box2">
-        <textarea class="error" readonly placeholder="Errors will appear here...">{{ errorDescription if errorDescription != None }}</textarea>
+        <h4>Errors</h4>
+        <textarea class="error" readonly></textarea>
     </div>
 
     <button id="validate-btn">Validate</button>
+    <button id="reset-boxes-btn" class="reset-btn">Reset Boxes</button>
 
     <script>
         document.addEventListener('DOMContentLoaded', function () {
             const toggle = document.getElementById('mode-toggle');
             const body = document.body;
+            const loading = document.getElementById('loading');
 
-            // Set theme from cookies
+            // Theme toggle
             const theme = document.cookie.split('; ').find(row => row.startsWith('theme='));
             if (theme && theme.split('=')[1] === 'dark') {
                 body.classList.add('dark-mode');
@@ -59,88 +83,94 @@
                 document.cookie = "theme=" + (body.classList.contains('dark-mode') ? 'dark' : 'light') + "; path=/";
             });
 
-            // API Usage aus Cookies laden
-            const savedTokens = getCookie('total_tokens') || '0';
-            const savedCost = getCookie('total_cost') || '0.000000';
-            document.getElementById('total-tokens').textContent = savedTokens;
-            document.getElementById('total-cost').textContent = savedCost;
+            // Sync scrolling
+            const inputTextarea = document.querySelector('.in');
+            const outputTextarea = document.querySelector('.out');
+            inputTextarea.addEventListener('scroll', syncScroll);
+            outputTextarea.addEventListener('scroll', syncScroll);
 
-            // Reset Button Funktionalität
-            document.getElementById('reset-stats').addEventListener('click', function() {
+            function syncScroll(e) {
+                const other = e.target === inputTextarea ? outputTextarea : inputTextarea;
+                other.scrollTop = e.target.scrollTop;
+                other.scrollLeft = e.target.scrollLeft;
+            }
+
+            // Reset stats
+            document.getElementById('reset-stats').addEventListener('click', function () {
                 fetch('/reset-stats', { method: 'POST' })
                     .then(response => response.json())
-                    .then(data => {
+                    .then(() => {
                         document.getElementById('total-tokens').textContent = '0';
                         document.getElementById('total-cost').textContent = '0.000000';
-                        setCookie('total_tokens', '0', 30);
-                        setCookie('total_cost', '0.000000', 30);
                         $.notify("Statistiken zurückgesetzt", { position: "bottom center", className: "success" });
                     });
             });
 
-            // Validate button functionality
+            // Validate SQL
             document.getElementById('validate-btn').addEventListener('click', function (e) {
                 e.preventDefault();
-                const form = document.getElementById('sql-form');
                 const sqlInput = document.querySelector('.in').value.trim();
+                const dialect = document.getElementById('sql-dialect').value;
 
                 if (sqlInput) {
+                    // Show loading spinner
+                    loading.style.display = 'block';
+
                     fetch('/run-all', {
                         method: 'POST',
-                        body: new FormData(form)
+                        body: JSON.stringify({ sqlCode: sqlInput, dialect: dialect }),
+                        headers: { 'Content-Type': 'application/json' }
                     })
-                    .then(response => response.json())
-                    .then(data => {
-                        // Update API Usage Stats first
-                        if (data.apiUsage) {
-                            const tokens = data.apiUsage.totalTokens;
-                            const cost = parseFloat(data.apiUsage.totalCost).toFixed(6);
-                            
-                            document.getElementById('total-tokens').textContent = tokens;
-                            document.getElementById('total-cost').textContent = cost;
-                            
-                            setCookie('total_tokens', tokens, 30);
-                            setCookie('total_cost', cost, 30);
-                        }
+                        .then(response => response.json())
+                        .then(data => {
+                            // Hide loading spinner
+                            loading.style.display = 'none';
 
-                        // Then update the UI based on validation result
-                        if (data.hasError) {
-                            $(".error").val(data.errorDescription);
-                            $(".out").val(data.correctedCode);
-                            $.notify("SQL Code has errors.", { position: "bottom center", className: "error" });
-                        } else {
-                            $(".error").val("");
-                            $(".out").val("SQL is valid.");
-                            $.notify("SQL Code is valid!", { position: "bottom center", className: "success" });
-                        }
-                    })
-                    .catch(error => {
-                        console.error('Error:', error);
-                        $.notify("Ein Fehler ist aufgetreten", { position: "bottom center", className: "error" });
-                    });
+                            if (data.apiUsage) {
+                                document.getElementById('total-tokens').textContent = data.apiUsage.totalTokens;
+                                document.getElementById('total-cost').textContent = parseFloat(data.apiUsage.totalCost).toFixed(6);
+                            }
+
+                            if (data.hasError) {
+                                document.querySelector('.error').value = data.errorDescription;
+                                document.querySelector('.out').value = data.correctedCode;
+                                $.notify("SQL Code has errors.", { position: "bottom center", className: "error" });
+                            } else {
+                                document.querySelector('.error').value = '';
+                                document.querySelector('.out').value = "SQL is valid.";
+                                $.notify("SQL Code is valid!", { position: "bottom center", className: "success" });
+                            }
+                        })
+                        .catch(error => {
+                            // Hide loading spinner
+                            loading.style.display = 'none';
+
+                            console.error('Error:', error);
+                            $.notify("Ein Fehler ist aufgetreten", { position: "bottom center", className: "error" });
+                        });
                 } else {
-                    $(".error").val("Please enter SQL code.");
+                    document.querySelector('.error').value = "Please enter SQL code.";
                     $.notify("Please enter SQL code.", { position: "bottom center", className: "error" });
                 }
             });
 
-            // Cookie Hilfsfunktionen
-            function setCookie(name, value, days) {
-                const d = new Date();
-                d.setTime(d.getTime() + (days * 24 * 60 * 60 * 1000));
-                const expires = "expires=" + d.toUTCString();
-                document.cookie = name + "=" + value + ";" + expires + ";path=/";
-            }
+            // Copy corrected code
+            document.getElementById('copy-output-btn').addEventListener('click', () => {
+                const outputTextarea = document.querySelector('.out');
+                outputTextarea.select();
+                document.execCommand('copy');
+                $.notify("Corrected code copied!", { position: "bottom center", className: "success" });
+            });
 
-            function getCookie(name) {
-                const value = `; ${document.cookie}`;
-                const parts = value.split(`; ${name}=`);
-                if (parts.length === 2) return parts.pop().split(';').shift();
-            }
+            // Reset all boxes
+            document.getElementById('reset-boxes-btn').addEventListener('click', () => {
+                document.querySelector('.in').value = '';
+                document.querySelector('.out').value = '';
+                document.querySelector('.error').value = '';
+                $.notify("All boxes reset!", { position: "bottom center", className: "info" });
+            });
         });
     </script>
 </body>
-
-
 
 </html>

@@ -58,7 +58,6 @@ textarea.error {
     border: 2px solid #ccc;
 }
 
-/* Button Styling */
 button {
     margin-top: 20px;
     padding: 10px 20px;
@@ -70,7 +69,6 @@ button {
     font-size: 16px;
 }
 
-/* Dark button (theme toggle) */
 .darkbutton {
     display: flex;
     justify-content: flex-end;
@@ -113,16 +111,13 @@ button {
 
 input:checked+.slider {
     background-color: #111;
-    /* background-color: #ccc; */
 }
 
 input:checked+.slider:before {
     content: '🌙';
     transform: translateX(26px);
-
 }
 
-/* Dark Mode */
 .dark-mode {
     --background-color: #121212;
     --text-color: #e0e0e0;
@@ -140,7 +135,7 @@ input:checked+.slider:before {
     border: 2px solid #ccc;
     border-radius: 8px;
     padding: 15px;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .stats-box h3 {
@@ -168,4 +163,53 @@ input:checked+.slider:before {
 
 .reset-btn:hover {
     background-color: #c82333;
+}
+
+.textarea-wrapper {
+    margin-top: 20px;
+}
+
+.output-container {
+    display: flex;
+    align-items: center;
+    border: 2px solid #ccc;
+    border-radius: 8px;
+    overflow: hidden;
+    background-color: var(--input-background-color);
+}
+
+textarea.out {
+    flex: 1;
+    border: none;
+    padding: 10px;
+    background-color: var(--input-background-color);
+    color: var(--text-color);
+    font-size: 16px;
+    resize: none;
+    height: 150px;
+}
+
+textarea.out:focus {
+    outline: none;
+}
+
+button#copy-output-btn {
+    background-color: transparent;
+    border: none;
+    cursor: pointer;
+    padding: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background-color 0.3s;
+}
+
+button#copy-output-btn:hover {
+    background-color: rgba(0, 0, 0, 0.1);
+}
+
+button#copy-output-btn .icon {
+    width: 24px;
+    height: 24px;
+    fill: var(--text-color);
 }
