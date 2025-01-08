@@ -32,15 +32,23 @@
     <div class="box">
         <form id="sql-form" method="POST" action="{{ url_for('run_all_functions') }}">
             <textarea class="in" name="sqlCode" placeholder="Enter SQL code here..."></textarea>
-            <textarea class="out" readonly placeholder="Output will appear here...">{{ correctedCode if correctedCode != None }}</textarea>
+            <div class="output-container">
+                <textarea class="out" readonly placeholder="Output will appear here...">{{ correctedCode if correctedCode != None }}</textarea>
+            </div>
         </form>
     </div>
 
     <div class="box2">
-        <textarea class="error" readonly placeholder="Errors will appear here...">{{ errorDescription if errorDescription != None }}</textarea>
+        <div class="output-container">
+            <textarea class="error" readonly placeholder="Errors will appear here...">{{ errorDescription if errorDescription != None }}</textarea>
+        </div>
     </div>
 
     <button id="validate-btn">Validate</button>
+
+    <!-- Loader und Overlay hinzufügen -->
+    <div class="loader"></div>
+    <div class="overlay"></div>
 
     <script>
         document.addEventListener('DOMContentLoaded', function () {
@@ -85,6 +93,10 @@
                 const sqlInput = document.querySelector('.in').value.trim();
 
                 if (sqlInput) {
+                    // Show loading animation
+                    document.querySelector('.out').parentElement.classList.add('loading');
+                    document.querySelector('.error').parentElement.classList.add('loading');
+                    
                     fetch('/run-all', {
                         method: 'POST',
                         body: new FormData(form)
@@ -117,6 +129,11 @@
                     .catch(error => {
                         console.error('Error:', error);
                         $.notify("Ein Fehler ist aufgetreten", { position: "bottom center", className: "error" });
+                    })
+                    .finally(() => {
+                        // Remove loading animation
+                        document.querySelector('.out').parentElement.classList.remove('loading');
+                        document.querySelector('.error').parentElement.classList.remove('loading');
                     });
                 } else {
                     $(".error").val("Please enter SQL code.");
@@ -137,6 +154,26 @@
                 const parts = value.split(`; ${name}=`);
                 if (parts.length === 2) return parts.pop().split(';').shift();
             }
+
+            // Nach dem DOMContentLoaded Event, fügen wir einen Event-Listener für das Input-Feld hinzu
+            document.querySelector('.in').addEventListener('input', function(e) {
+                const outField = document.querySelector('.out');
+                const errorField = document.querySelector('.error');
+                
+                if (!this.value.trim()) {
+                    // Füge eine Klasse für den Fade-Effekt hinzu
+                    outField.classList.add('fading');
+                    errorField.classList.add('fading');
+                    
+                    // Nach der Animation die Felder leeren
+                    setTimeout(() => {
+                        outField.value = '';
+                        errorField.value = '';
+                        outField.classList.remove('fading');
+                        errorField.classList.remove('fading');
+                    }, 300);
+                }
+            });
         });
     </script>
 </body>
