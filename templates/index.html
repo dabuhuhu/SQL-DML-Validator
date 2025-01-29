@@ -41,29 +41,15 @@
     </select>
 
     <div class="box">
-        <div class="textarea-wrapper">
-            <h4>Input SQL Code</h4>
-            <textarea class="in" name="sqlCode"></textarea>
-        </div>
-        <div class="textarea-wrapper">
-            <h4>Corrected SQL Code</h4>
-            <div class="output-container">
-                <textarea class="out" readonly></textarea>
-                <button id="copy-output-btn" type="button">
-                    <img src="images/copy-icon.svg" alt="Copy" class="icon"> <!-- Icon hinzufügen -->
-                </button>
-            </div>
-        </div>
 
-    </div>
-
-    <div class="box2">
-        <h4>Errors</h4>
-        <textarea class="error" readonly></textarea>
     </div>
 
     <button id="validate-btn">Validate</button>
     <button id="reset-boxes-btn" class="reset-btn">Reset Boxes</button>
+
+    <!-- Loader und Overlay hinzufügen -->
+    <div class="loader"></div>
+    <div class="overlay"></div>
 
     <script>
         document.addEventListener('DOMContentLoaded', function () {
@@ -113,41 +99,12 @@
                 const dialect = document.getElementById('sql-dialect').value;
 
                 if (sqlInput) {
-                    // Show loading spinner
-                    loading.style.display = 'block';
-
                     fetch('/run-all', {
                         method: 'POST',
                         body: JSON.stringify({ sqlCode: sqlInput, dialect: dialect }),
                         headers: { 'Content-Type': 'application/json' }
                     })
-                        .then(response => response.json())
-                        .then(data => {
-                            // Hide loading spinner
-                            loading.style.display = 'none';
 
-                            if (data.apiUsage) {
-                                document.getElementById('total-tokens').textContent = data.apiUsage.totalTokens;
-                                document.getElementById('total-cost').textContent = parseFloat(data.apiUsage.totalCost).toFixed(6);
-                            }
-
-                            if (data.hasError) {
-                                document.querySelector('.error').value = data.errorDescription;
-                                document.querySelector('.out').value = data.correctedCode;
-                                $.notify("SQL Code has errors.", { position: "bottom center", className: "error" });
-                            } else {
-                                document.querySelector('.error').value = '';
-                                document.querySelector('.out').value = "SQL is valid.";
-                                $.notify("SQL Code is valid!", { position: "bottom center", className: "success" });
-                            }
-                        })
-                        .catch(error => {
-                            // Hide loading spinner
-                            loading.style.display = 'none';
-
-                            console.error('Error:', error);
-                            $.notify("Ein Fehler ist aufgetreten", { position: "bottom center", className: "error" });
-                        });
                 } else {
                     document.querySelector('.error').value = "Please enter SQL code.";
                     $.notify("Please enter SQL code.", { position: "bottom center", className: "error" });
@@ -162,12 +119,7 @@
                 $.notify("Corrected code copied!", { position: "bottom center", className: "success" });
             });
 
-            // Reset all boxes
-            document.getElementById('reset-boxes-btn').addEventListener('click', () => {
-                document.querySelector('.in').value = '';
-                document.querySelector('.out').value = '';
-                document.querySelector('.error').value = '';
-                $.notify("All boxes reset!", { position: "bottom center", className: "info" });
+
             });
         });
     </script>
