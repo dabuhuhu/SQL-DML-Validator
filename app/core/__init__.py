@@ -1,0 +1,1 @@
+# Leere __init__.py für das core Package 
