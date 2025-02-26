@@ -8,6 +8,9 @@
     <link rel="stylesheet" type="text/css" href="../static/style.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
     <script src="https://notifyjs.jpillora.com/js/notify.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Fira+Code&display=swap" rel="stylesheet">
 </head>
 
 <body>
@@ -31,24 +34,51 @@
 
     <div class="box">
         <form id="sql-form" method="POST" action="{{ url_for('run_all_functions') }}">
-            <textarea class="in" name="sqlCode" placeholder="Enter SQL code here..."></textarea>
+            <div class="input-container">
+                <div class="dialect-selector">
+                    <select id="sql-dialect" name="dialect">
+                        <option value="standard">Standard SQL</option>
+                        <option value="mysql">MySQL</option>
+                        <option value="postgresql">PostgreSQL</option>
+                        <option value="sqlite">SQLite</option>
+                        <option value="mssql">MS SQL Server</option>
+                    </select>
+                </div>
+                <textarea class="in" name="sqlCode" placeholder="SQL-Code hier eingeben..."></textarea>
+            </div>
             <div class="output-container">
-                <textarea class="out" readonly placeholder="Output will appear here...">{{ correctedCode if correctedCode != None }}</textarea>
+                <textarea class="out" readonly placeholder="Korrigierter Code erscheint hier...">{{ correctedCode if correctedCode != None }}</textarea>
             </div>
         </form>
     </div>
 
     <div class="box2">
         <div class="output-container">
-            <textarea class="error" readonly placeholder="Errors will appear here...">{{ errorDescription if errorDescription != None }}</textarea>
+            <textarea class="error" readonly placeholder="Fehlerbeschreibung erscheint hier...">{{ errorDescription if errorDescription != None }}</textarea>
         </div>
     </div>
 
     <button id="validate-btn">Validate</button>
 
     <!-- Loader und Overlay hinzufügen -->
-    <div class="loader"></div>
+    <div class="loader">SQL wird geprüft</div>
     <div class="overlay"></div>
+
+    <div class="system-status">
+        <span class="status-dot" id="overall-status"></span>
+        <span>System Status</span>
+        <div class="status-details">
+            <div class="status-item">
+                <span class="status-dot" id="api-status"></span>
+                <span>API</span>
+                <span id="api-response-time" style="margin-left: auto; font-size: 12px;"></span>
+            </div>
+            <div class="status-item">
+                <span class="status-dot" id="prompts-status"></span>
+                <span>Prompts</span>
+            </div>
+        </div>
+    </div>
 
     <script>
         document.addEventListener('DOMContentLoaded', function () {
@@ -82,63 +112,90 @@
                         document.getElementById('total-cost').textContent = '0.000000';
                         setCookie('total_tokens', '0', 30);
                         setCookie('total_cost', '0.000000', 30);
-                        $.notify("Statistiken zurückgesetzt", { position: "bottom center", className: "success" });
+                        showNotification("Statistiken zurückgesetzt", "success");
                     });
             });
 
             // Validate button functionality
-            document.getElementById('validate-btn').addEventListener('click', function (e) {
+            document.getElementById('validate-btn').addEventListener('click', function(e) {
                 e.preventDefault();
-                const form = document.getElementById('sql-form');
-                const sqlInput = document.querySelector('.in').value.trim();
-
-                if (sqlInput) {
-                    // Show loading animation
-                    document.querySelector('.out').parentElement.classList.add('loading');
-                    document.querySelector('.error').parentElement.classList.add('loading');
-                    
-                    fetch('/run-all', {
-                        method: 'POST',
-                        body: new FormData(form)
-                    })
-                    .then(response => response.json())
-                    .then(data => {
-                        // Update API Usage Stats first
-                        if (data.apiUsage) {
-                            const tokens = data.apiUsage.totalTokens;
-                            const cost = parseFloat(data.apiUsage.totalCost).toFixed(6);
-                            
-                            document.getElementById('total-tokens').textContent = tokens;
-                            document.getElementById('total-cost').textContent = cost;
-                            
-                            setCookie('total_tokens', tokens, 30);
-                            setCookie('total_cost', cost, 30);
-                        }
-
-                        // Then update the UI based on validation result
-                        if (data.hasError) {
-                            $(".error").val(data.errorDescription);
-                            $(".out").val(data.correctedCode);
-                            $.notify("SQL Code has errors.", { position: "bottom center", className: "error" });
-                        } else {
-                            $(".error").val("");
-                            $(".out").val("SQL is valid.");
-                            $.notify("SQL Code is valid!", { position: "bottom center", className: "success" });
-                        }
-                    })
-                    .catch(error => {
-                        console.error('Error:', error);
-                        $.notify("Ein Fehler ist aufgetreten", { position: "bottom center", className: "error" });
-                    })
-                    .finally(() => {
-                        // Remove loading animation
-                        document.querySelector('.out').parentElement.classList.remove('loading');
-                        document.querySelector('.error').parentElement.classList.remove('loading');
-                    });
-                } else {
-                    $(".error").val("Please enter SQL code.");
-                    $.notify("Please enter SQL code.", { position: "bottom center", className: "error" });
+                console.log('=== Validate Button Clicked ===');
+                
+                const sqlInput = document.querySelector('.in').value;
+                const dialect = document.getElementById('sql-dialect').value;
+                console.log('Input SQL:', sqlInput);
+                
+                if (!sqlInput.trim()) {
+                    console.log('Empty input detected');
+                    showNotification("Bitte SQL-Code eingeben", "error");
+                    return;
                 }
+                
+                // Show loading animation
+                const loader = document.querySelector('.loader');
+                const overlay = document.querySelector('.overlay');
+                loader.style.display = 'flex';
+                overlay.style.display = 'block';
+                
+                // Disable button during request
+                this.disabled = true;
+                
+                // Send request to backend
+                fetch('/run-all', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: 'sqlCode=' + encodeURIComponent(sqlInput) + '&dialect=' + encodeURIComponent(dialect)
+                })
+                .then(response => {
+                    console.log('Response status:', response.status);
+                    return response.json();
+                })
+                .then(data => {
+                    console.log('Received data:', data);
+                    
+                    // Update API Usage Stats
+                    if (data.apiUsage) {
+                        const tokens = data.apiUsage.totalTokens;
+                        const cost = parseFloat(data.apiUsage.totalCost).toFixed(6);
+                        
+                        document.getElementById('total-tokens').textContent = tokens;
+                        document.getElementById('total-cost').textContent = cost;
+                        
+                        setCookie('total_tokens', tokens, 30);
+                        setCookie('total_cost', cost, 30);
+                        showNotification(`API Usage: ${tokens} Tokens ($${cost})`, "success");
+                    }
+                    
+                    // Update output fields
+                    const errorField = document.querySelector('.error');
+                    const outputField = document.querySelector('.out');
+                    
+                    // Fehlerbeschreibung nur anzeigen, wenn es Fehler gibt
+                    errorField.value = data.hasError ? (data.errorDescription || '') : '';
+                    
+                    // Korrigierten Code nur im Output-Feld anzeigen
+                    outputField.value = data.correctedCode || '';
+                    
+                    // Show notification
+                    if (data.hasError) {
+                        showNotification("Kein gültiger SQL-Code", "error");
+                    } else {
+                        showNotification("SQL Code ist gültig!", "success");
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    showNotification("Ein Fehler ist aufgetreten", "error");
+                })
+                .finally(() => {
+                    // Hide loading animation
+                    loader.style.display = 'none';
+                    overlay.style.display = 'none';
+                    // Re-enable button
+                    this.disabled = false;
+                });
             });
 
             // Cookie Hilfsfunktionen
@@ -174,10 +231,114 @@
                     }, 300);
                 }
             });
+
+            // Fügen Sie dies zum bestehenden DOMContentLoaded Event-Listener hinzu
+            const outputFields = document.querySelectorAll('.out, .error');
+
+            outputFields.forEach(field => {
+                field.addEventListener('click', async function() {
+                    // Prüfen ob Text zum Kopieren vorhanden ist
+                    if (!this.value.trim()) return;
+                    
+                    // Text kopieren
+                    try {
+                        await navigator.clipboard.writeText(this.value);
+                        
+                        // Visuelle Rückmeldung
+                        this.classList.remove('copied'); // Klasse zuerst entfernen
+                        void this.offsetWidth; // Force Reflow
+                        this.classList.add('copied');
+                        
+                        // Kopier-Benachrichtigung aktualisieren
+                        showNotification("Kopiert! ✨", "success");
+                        
+                        // Animation zurücksetzen
+                        setTimeout(() => {
+                            this.classList.remove('copied');
+                        }, 1000);
+                    } catch (err) {
+                        showNotification("Kopieren fehlgeschlagen", "error");
+                    }
+                });
+
+                // Hover-Effekt nur wenn Text vorhanden
+                field.addEventListener('mouseover', function() {
+                    if (this.value.trim()) {
+                        this.title = "Klicken zum Kopieren";
+                        this.style.cursor = "pointer";
+                    } else {
+                        this.title = "";
+                        this.style.cursor = "default";
+                    }
+                });
+            });
+
+            // Fügen Sie diese Funktion am Anfang des <script> Tags hinzu
+            function showNotification(message, type = 'success') {
+                const container = document.querySelector('.notification-container') || (() => {
+                    const div = document.createElement('div');
+                    div.className = 'notification-container';
+                    document.body.appendChild(div);
+                    return div;
+                })();
+                
+                const notification = document.createElement('div');
+                notification.className = `notification ${type}`;
+                notification.textContent = message;
+                
+                container.appendChild(notification);
+                
+                // Entferne die Notification nach der Animation
+                setTimeout(() => {
+                    notification.remove();
+                }, 3000);
+            }
+
+            // Fügen Sie dies zum bestehenden Script hinzu
+            function checkSystemStatus() {
+                fetch('/api/status')
+                    .then(response => response.json())
+                    .then(data => {
+                        const apiStatus = data.api.status === 'online';
+                        const promptsStatus = Object.values(data.prompts).every(p => p.status === 'online');
+                        
+                        // Update API Status
+                        document.getElementById('api-status').className = 
+                            `status-dot ${apiStatus ? 'online' : 'offline'}`;
+                        if (data.api.responseTime) {
+                            document.getElementById('api-response-time').textContent = 
+                                `${data.api.responseTime}ms`;
+                        }
+                        
+                        // Update Prompts Status
+                        document.getElementById('prompts-status').className = 
+                            `status-dot ${promptsStatus ? 'online' : 'offline'}`;
+                        
+                        // Update Overall Status
+                        document.getElementById('overall-status').className = 
+                            `status-dot ${(apiStatus && promptsStatus) ? 'online' : 'offline'}`;
+                    })
+                    .catch(() => {
+                        ['overall-status', 'api-status', 'prompts-status'].forEach(id => {
+                            document.getElementById(id).className = 'status-dot offline';
+                        });
+                    });
+            }
+
+            // Check status every 30 seconds
+            checkSystemStatus();
+            setInterval(checkSystemStatus, 30000);
+
+            // Fügen Sie dies zum bestehenden DOMContentLoaded Event-Listener hinzu
+            document.querySelector('.in').addEventListener('keydown', function(e) {
+                // Prüfe ob Ctrl/Cmd + Enter gedrückt wurde
+                if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+                    e.preventDefault(); // Verhindere Standard-Verhalten
+                    document.getElementById('validate-btn').click(); // Simuliere Button-Click
+                }
+            });
         });
     </script>
 </body>
-
-
 
 </html>
