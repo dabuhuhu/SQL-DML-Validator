@@ -1,7 +1,12 @@
-# Important steps before running:
+# Installation
 
+```bash
+git clone https://github.com/dabuhuhu/SQL-DML-Validator.git
+cd SQL-DML-Validator
 pip install -r requirements.txt
+```
 
-# ToDo
-
-https://docs.google.com/document/d/1yLD0uv98j1VY-5os-EFbVObnxKASGZp-vydRpzP0Xnk/edit?usp=sharing
+## Nutzung
+```bash
+python app.py
+```
