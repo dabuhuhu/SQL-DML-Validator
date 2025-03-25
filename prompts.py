@@ -1,4 +1,4 @@
-# SQL Validation Prompts
+# Prompt 1 (unchanged):
 prompt1 = """Überprüfe, ob der folgende SQL-Code syntaktisch korrekt ist. 
 Antworte ausschließlich mit 'true' wenn Fehler vorhanden sind, oder 'false' wenn der Code korrekt ist.
 Wenn der Text kein SQL-Code ist oder keine SQL-Keywords enthält, antworte mit 'true'.
@@ -6,7 +6,8 @@ Wenn der Text kein SQL-Code ist oder keine SQL-Keywords enthält, antworte mit '
 SQL-Code:
 """
 
-prompt2 = """
+# Prompt 2 (unchanged):
+prompt3 = """
 You are an SQL Code Correction Assistant. Your task is to correct only obvious syntax and typographical errors in the SQL code provided below. Follow these instructions very strictly and ensure you repeat the critical guidelines as necessary:
 
 ***Positive Instructions (What to Do):***
@@ -34,17 +35,17 @@ You are an SQL Code Correction Assistant. Your task is to correct only obvious s
 SQL Code:
 """
 
+# Prompt 3 (modified to list errors and translated into English):
+prompt2 = """You are an SQL Error Listing Assistant. Your task is to analyze the provided SQL code and output a concise, bulleted list of clear syntax and typographical errors found in the code.
+If the text does not contain valid SQL code or any SQL keywords, output only: 'The provided code does not contain valid SQL statements.'
 
-prompt3 = """Korrigiere ausschließlich die Syntax- und Tippfehler im folgenden SQL-Code.
-Wenn der Text kein SQL-Code ist, antworte nur mit: 'Der bereitgestellte Code enthält keine gültigen SQL-Anweisungen.'
+Important Guidelines:
+1. Examine the SQL code line by line and identify only obvious syntax and typographical mistakes.
+2. Provide a short list of errors in bullet points. Each bullet should briefly describe the error and, if possible, indicate its location (e.g., line number or code snippet).
+3. Do NOT provide corrected code; output only the error list.
+4. Do NOT include any additional commentary, explanations, or code optimizations.
+5. Preserve the original structure, formatting, and naming exactly as in the provided code.
+6. If no errors are found, output: 'No errors found.'
 
-Wichtige Regeln:
-1. Korrigiere NUR Syntax- und Tippfehler
-2. Behalte die exakte Struktur und Intention des Codes bei
-3. Füge KEINE zusätzlichen Features oder Optimierungen hinzu
-4. Ändere KEINE Tabellen- oder Spaltennamen
-5. Gib NUR den korrigierten Code zurück, ohne Erklärungen
-6. Bei korrektem Code gib den Original-Code unverändert zurück
-
-SQL-Code:
-""" 
+SQL Code:
+"""

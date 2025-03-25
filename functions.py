@@ -1,8 +1,7 @@
 import openai
 import os
 from dotenv import load_dotenv
-from prompts import prompt1, prompt2, prompt3  # Direkter Import der Prompts
-
+from prompts import prompt1, prompt2, prompt3
 # Lade die Umgebungsvariablen
 load_dotenv()
 
