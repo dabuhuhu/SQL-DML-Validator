@@ -31,7 +31,8 @@ h1 {
 }
 
 /* Container Styles */
-.box, .box2 {
+.box,
+.box2 {
     max-width: 1200px;
     margin: 0 auto 20px;
     padding: 0 20px;
@@ -39,16 +40,17 @@ h1 {
 
 .box form {
     display: flex;
-    gap: 20px;
+    gap: 40px;
     width: 100%;
+    justify-content: space-between;
+    /* Damit die Container gleichmäßig verteilt werden */
 }
 
 /* Input/Output Container */
-
-    
-.input-container, 
+.input-container,
 .output-container {
     flex: 1;
+    /* Beide Container sind gleich groß */
     position: relative;
 }
 
@@ -89,7 +91,8 @@ textarea.error {
     background-color: var(--input-background-color);
     border-color: var(--border-color);
     position: relative;
-    cursor: pointer; /* Zeigt an, dass man interagieren kann */
+    cursor: pointer;
+    /* Zeigt an, dass man interagieren kann */
     transition: all 0.3s ease;
 }
 
@@ -105,14 +108,17 @@ textarea.error:hover {
         background-color: var(--input-background-color);
         color: var(--text-color);
     }
+
     20% {
         background-color: rgba(40, 167, 69, 0.15);
         color: var(--text-color);
     }
+
     60% {
         background-color: rgba(40, 167, 69, 0.1);
         color: var(--text-color);
     }
+
     100% {
         background-color: var(--input-background-color);
         color: var(--text-color);
@@ -129,14 +135,17 @@ textarea.error:hover {
         background-color: #252525;
         color: var(--text-color);
     }
+
     30% {
         background-color: rgba(40, 167, 69, 0.15);
         color: var(--text-color);
     }
+
     70% {
         background-color: rgba(40, 167, 69, 0.15);
         color: var(--text-color);
     }
+
     100% {
         background-color: #252525;
         color: var(--text-color);
@@ -172,6 +181,7 @@ textarea.error:hover {
     margin: 0;
     padding: 0;
     z-index: 1;
+    border-radius: 50px;
 }
 
 /* Button Styles */
@@ -242,7 +252,7 @@ textarea.error:hover {
     content: '☀️';
     font-size: 18px;
     left: 6px;
-    bottom: 6px;
+    bottom: 2px;
     transition: 0.4s;
 }
 
@@ -254,6 +264,7 @@ input:checked+.slider {
 input:checked+.slider:before {
     content: '🌙';
     transform: translateX(26px);
+    left: 12px;
 
 }
 
@@ -340,9 +351,19 @@ input:checked+.slider:before {
 }
 
 @keyframes spin {
-    0%, 100% { content: '⚙️'; }
-    33% { content: '🔍'; }
-    66% { content: '💻'; }
+
+    0%,
+    100% {
+        content: '⚙️';
+    }
+
+    33% {
+        content: '🔍';
+    }
+
+    66% {
+        content: '💻';
+    }
 }
 
 .overlay {
@@ -356,7 +377,7 @@ input:checked+.slider:before {
 
 /* Dark Mode Anpassungen */
 .dark-mode .loader {
-    box-shadow: 0 4px 12px rgba(0,255,0,0.2);
+    box-shadow: 0 4px 12px rgba(0, 255, 0, 0.2);
 }
 
 /* Disabled button style */
@@ -371,7 +392,8 @@ button:disabled {
     bottom: 20px;
     right: 20px;
     z-index: 9999;
-    transform: translateY(-60px); /* Nach oben verschieben, um Platz für Status zu machen */
+    transform: translateY(-60px);
+    /* Nach oben verschieben, um Platz für Status zu machen */
 }
 
 .notification {
@@ -402,6 +424,7 @@ button:disabled {
         transform: translateX(100%);
         opacity: 0;
     }
+
     to {
         transform: translateX(0);
         opacity: 1;
@@ -413,6 +436,7 @@ button:disabled {
         transform: translateX(0);
         opacity: 1;
     }
+
     to {
         transform: translateX(100%);
         opacity: 0;
@@ -479,88 +503,18 @@ button:disabled {
     display: flex;
     align-items: center;
     gap: 8px;
-    margin-bottom: 8px;
+    margin: 4px 0;
 }
 
-.status-item:last-child {
-    margin-bottom: 0;
-}
-
-.status-dot {
-    width: 8px;
-    height: 8px;
-    position: relative;
-    border-radius: 50%;
-    display: inline-block;
-}
-
-.status-dot.online {
-    background-color: var(--success-color);
-    box-shadow: 0 0 4px var(--success-color);
-}
-
-.status-dot.offline {
-    background-color: var(--error-color);
-    box-shadow: 0 0 4px var(--error-color);
-}
-
-.status-dot.online::after {
-    content: '';
-    position: absolute;
-    inset: -2px;
-    border-radius: 50%;
-    background-color: var(--success-color);
-    opacity: 0.3;
-    animation: pulse 2s infinite;
-}
-
-@keyframes pulse {
-    0% { transform: scale(1); opacity: 0.3; }
-    50% { transform: scale(2); opacity: 0; }
-    100% { transform: scale(1); opacity: 0.3; }
-}
-
-.dark-mode .system-status,
-.dark-mode .status-details {
-    background-color: #2d2d2d;
-}
-
-.dialect-selector select {
-    padding: 8px 12px;
-    border: 2px solid var(--border-color);
-    border-radius: 6px;
-    font-size: 13px;
-    background-color: var(--background-color);
+.status-item span {
+    font-size: 14px;
     color: var(--text-color);
 }
 
-.dialect-selector select:hover {
-    border-color: var(--accent-color);
-}
-
-.dialect-selector select:focus {
-    outline: none;
-    border-color: var(--accent-color);
-    box-shadow: 0 2px 8px rgba(76, 175, 80, 0.2);
-}
-
-.dark-mode .dialect-selector select {
-    background-color: #2d2d2d;
-    border-color: #404040;
-}
-
-/* Shortcut Hint */
-.input-container::after {
-    content: 'Ctrl + Enter zum Validieren';
-    position: absolute;
-    bottom: -25px;
-    right: 0;
-    font-size: 12px;
-    color: var(--text-color);
-    opacity: 0.7;
-}
-
-/* Dark Mode Anpassung */
-.dark-mode .input-container::after {
-    opacity: 0.5;
+.highlight-error {
+    background-color: #f8d7da;
+    color: #721c24;
+    border: 1px solid #f5c6cb;
+    padding: 0 4px;
+    border-radius: 3px;
 }
